@@ -19,6 +19,27 @@
 	@return $result;
 }
 
+/// `apply-props` is used to apply tabler styles to the yesvelte classes via:
+/// 	.y-comp { @include apply-props($props) }
+/// ...where `$props` is a possibly nested SASS map, the values of which specify
+/// tabler classes to read the styles from (via @extend), and the keys build up
+/// the target (yesvelte) class name, as demonstrated in the following example:
+/// 
+/// 	$props: (
+/// 		null: '.tblr-null',     // the styles from .tblr-null also apply to .y-comp
+/// 		header: '.tblr-header', // the styles from .tblr-header apply to .y-comp-header
+/// 		mult: '.foo' '.bar',    // the styles from both .foo and .bar apply
+/// 		wrapper: ( // the keys of nested maps are joined with a dash ('-'), e.g.
+/// 			null: ...,     // .y-comp-wrapper
+/// 			dropdown: ...  // .y-comp-wrapper-dropdown
+/// 		)
+/// 	)
+/// 
+/// Putting a map inside a `null` key is technically possible but not needed
+/// 	$props: (
+/// 		null: (  // <--- this line can safely be deleted
+/// 			null: ...,
+/// 			foo: ... ))
 @mixin apply-props($mappings) {
 	@each $key, $values in $mappings {
 		$prefix: '-';

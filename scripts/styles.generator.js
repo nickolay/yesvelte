@@ -6,7 +6,7 @@ import postcss from 'postcss'
 import postcssFilterRules from 'postcss-filter-rules'
 
 // TODO: Optimize (only compile one)
-const files = ['tabler', 'daisyui']
+const files = ['tabler'] //, 'daisyui']
 
 function compile(file) {
 	console.log(`Compiling ${file}...`)
@@ -15,13 +15,14 @@ function compile(file) {
 		importers: [
 			{
 				findFileUrl(url) {
-					console.log(`Compiling ${url}...`)
+					let origUrl = url;
 					if (url.startsWith('@') || url.startsWith('~')) {
 						url = path.resolve('node_modules', url.substr(1))
 					}
 					if (url.startsWith('../../node_modules/')) {
 						url = path.resolve('node_modules', url.replace('../../node_modules/', ''))
 					}
+					// console.log(`Resolved url ${origUrl} -> ${url}...`)
 					return new URL('file://' + url)
 				},
 			},
@@ -49,6 +50,7 @@ async function clean(css) {
 
 for (const file of files) {
 	const css = compile(file)
+	console.log("done")
 	// checking if the folder doesn't exist yet and creating it
 	if (!fs.existsSync('./static/css')) {
 		fs.mkdirSync('./static/css', { recursive: true })
