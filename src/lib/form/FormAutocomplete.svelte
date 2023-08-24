@@ -78,7 +78,7 @@
 			let:item
 			let:index>
 			<slot {index} {item}>{item}</slot>
-			<slot name="selected" slot="selected" {index} {item}>{item}</slot>
+			<slot name="selected" slot="selected"></slot>
 		</Autocomplete>
 
 		<slot name="end">
