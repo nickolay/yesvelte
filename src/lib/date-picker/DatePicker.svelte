@@ -31,39 +31,41 @@
 	]
 	const dispatch = createEventDispatcher()
 
-	let element: HTMLElement
+	let element: HTMLInputElement
 	let instance: Litepicker | undefined = undefined
 
 	$: if (value) {
-		if (element) element.value = text
+		if (element) element.value = text ?? ''
 
 		if (range) {
 			instance?.setStartDate(value[0])
 			instance?.setEndDate(value[1])
 
-			text = (format(value[0], 'text') + ' - ' + format(value[1], 'text')) as string
+			text = format(value[0]) + ' - ' + format(value[1])
 		} else {
 			instance?.setDate(value)
 
-			text = format(value, 'text') as string
+			text = format(value)
 		}
 	}
 
 	function formatValue(date: DateTime | null | undefined): string {
 		return date ? date.format('YYYY-MM-DD') : ''
 	}
-	function format(date: Date | DateTime | null | undefined, mode: 'text'): Date | string {
-		if (!date) return ' --- '
-		if (date.toJSDate) date = date.toJSDate()
-
-		if (date) {
-			if (formatText) {
-				return formatText(date)
-			}
-
-			return new Date(date).toDateString()
+	function format(value: string | null | undefined): string {
+		if (!value) return ' --- '  // displayed in an empty date range picker
+		const fromYYYYMMDD = (s: string) => {
+			const parsed = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s)?.slice(1)
+			if (!parsed) return null
+			const p = parsed.map((i) => parseInt(i, 10))
+  			return new Date(p[0], p[1] - 1, p[2])
 		}
-		return ''
+		let date = fromYYYYMMDD(value ?? '')
+		if (!date) return ''
+		if (formatText) {
+			return formatText(date)
+		}
+		return date.toDateString()
 	}
 
 	let settings: ILPConfiguration
@@ -142,12 +144,12 @@
 			picker.on('selected', (date1: DateTime | null, date2: DateTime | null | undefined) => {
 				if (range) {
 					const startDateValue = formatValue(date1)
-					const startDateText = format(date1, 'text')
+					const startDateText = format(startDateValue)
 
 					const endDateValue = formatValue(date2)
-					const endDateText = format(date2, 'text')
+					const endDateText = format(endDateValue)
 
-					if (value[0] === startDateValue && value[1] === endDateValue) return
+					if (value instanceof Array && value[0] === startDateValue && value[1] === endDateValue) return
 
 					value = [startDateValue, endDateValue]
 
@@ -155,7 +157,7 @@
 					dispatch('changed', value)
 				} else {
 					const dateValue = formatValue(date1)
-					const dateText = format(date1, 'text')
+					const dateText = format(dateValue)
 
 					if (value === dateValue) return
 
