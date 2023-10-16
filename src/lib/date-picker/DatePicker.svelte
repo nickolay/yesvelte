@@ -34,8 +34,12 @@
 	let element: HTMLInputElement
 	let instance: Litepicker | undefined = undefined
 
+	function updateElementValue(v: string) {
+		// hide changes to `element` from svelte's dependency tracker
+		element.value = v
+	}
 	$: if (value) {
-		if (element) element.value = text ?? ''
+		if (element) updateElementValue(text ?? '')
 
 		if (range) {
 			instance?.setStartDate(value[0])
@@ -53,12 +57,12 @@
 		return date ? date.format('YYYY-MM-DD') : ''
 	}
 	function format(value: string | null | undefined): string {
-		if (!value) return ' --- '  // displayed in an empty date range picker
+		if (!value) return ' --- ' // displayed in an empty date range picker
 		const fromYYYYMMDD = (s: string) => {
 			const parsed = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s)?.slice(1)
 			if (!parsed) return null
 			const p = parsed.map((i) => parseInt(i, 10))
-  			return new Date(p[0], p[1] - 1, p[2])
+			return new Date(p[0], p[1] - 1, p[2])
 		}
 		let date = fromYYYYMMDD(value ?? '')
 		if (!date) return ''
@@ -89,86 +93,88 @@
 </svg>`,
 			reset: '',
 		},
-		setup(picker: any) {
-			picker.on('render', (ui) => {
-				const header = ui.querySelector('.month-item-header')
+		setup: setup,
+	}
+	function setup(picker: any) {
+		picker.on('render', (ui) => {
+			const header = ui.querySelector('.month-item-header')
 
-				const prevYearBtn = document.createElement('button')
-				const nextYearBtn = document.createElement('button')
+			const prevYearBtn = document.createElement('button')
+			const nextYearBtn = document.createElement('button')
 
-				prevYearBtn.setAttribute('type', 'button')
-				prevYearBtn.classList.add(classname(componentName + '-button-year')!)
+			prevYearBtn.setAttribute('type', 'button')
+			prevYearBtn.classList.add(classname(componentName + '-button-year')!)
 
-				nextYearBtn.setAttribute('type', 'button')
-				nextYearBtn.classList.add(classname(componentName + '-button-year')!)
+			nextYearBtn.setAttribute('type', 'button')
+			nextYearBtn.classList.add(classname(componentName + '-button-year')!)
 
-				prevYearBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chevrons-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+			prevYearBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chevrons-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
    <path d="M11 7l-5 5l5 5"></path>
    <path d="M17 7l-5 5l5 5"></path>
 </svg>`
 
-				nextYearBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chevrons-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+			nextYearBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-chevrons-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
    <path d="M7 7l5 5l-5 5"></path>
    <path d="M13 7l5 5l-5 5"></path>
 </svg>`
 
-				function getDateOfSelectedPage() {
-					return new Date(picker.calendars[0].toJSDate())
-				}
+			function getDateOfSelectedPage() {
+				return new Date(picker.calendars[0].toJSDate())
+			}
 
-				function nextYear() {
-					const date = getDateOfSelectedPage()
-					return new Date(date.getFullYear() + 1, date.getMonth(), date.getDay() + 1)
-				}
-				function prevYear() {
-					const date = getDateOfSelectedPage()
-					return new Date(date.getFullYear() - 1, date.getMonth(), date.getDay() + 1)
-				}
+			function nextYear() {
+				const date = getDateOfSelectedPage()
+				return new Date(date.getFullYear() + 1, date.getMonth(), date.getDay() + 1)
+			}
+			function prevYear() {
+				const date = getDateOfSelectedPage()
+				return new Date(date.getFullYear() - 1, date.getMonth(), date.getDay() + 1)
+			}
 
-				prevYearBtn.addEventListener('click', (event) => {
-					instance?.gotoDate(prevYear())
-				})
-
-				nextYearBtn.addEventListener('click', (event) => {
-					instance?.gotoDate(nextYear())
-				})
-
-				if (header) {
-					header.insertBefore(prevYearBtn, header.firstChild)
-					header.appendChild(nextYearBtn)
-				}
+			prevYearBtn.addEventListener('click', (event) => {
+				instance?.gotoDate(prevYear())
 			})
 
-			picker.on('selected', (date1: DateTime | null, date2: DateTime | null | undefined) => {
-				if (range) {
-					const startDateValue = formatValue(date1)
-					const startDateText = format(startDateValue)
-
-					const endDateValue = formatValue(date2)
-					const endDateText = format(endDateValue)
-
-					if (value instanceof Array && value[0] === startDateValue && value[1] === endDateValue) return
-
-					value = [startDateValue, endDateValue]
-
-					text = startDateText + ' - ' + endDateText
-					dispatch('changed', value)
-				} else {
-					const dateValue = formatValue(date1)
-					const dateText = format(dateValue)
-
-					if (value === dateValue) return
-
-					value = dateValue
-					text = dateText
-					dispatch('changed', value)
-				}
-
-				if (element) element.value = text
+			nextYearBtn.addEventListener('click', (event) => {
+				instance?.gotoDate(nextYear())
 			})
-		},
+
+			if (header) {
+				header.insertBefore(prevYearBtn, header.firstChild)
+				header.appendChild(nextYearBtn)
+			}
+		})
+
+		picker.on('selected', (date1: DateTime | null, date2: DateTime | null | undefined) => {
+			if (range) {
+				const startDateValue = formatValue(date1)
+				const startDateText = format(startDateValue)
+
+				const endDateValue = formatValue(date2)
+				const endDateText = format(endDateValue)
+
+				if (value instanceof Array && value[0] === startDateValue && value[1] === endDateValue)
+					return
+
+				value = [startDateValue, endDateValue]
+
+				text = startDateText + ' - ' + endDateText
+				dispatch('changed', value)
+			} else {
+				const dateValue = formatValue(date1)
+				const dateText = format(dateValue)
+
+				if (value === dateValue) return
+
+				value = dateValue
+				text = dateText
+				dispatch('changed', value)
+			}
+
+			if (element) element.value = text
+		})
 	}
 
 	let cssProps: $$Props = {}
@@ -188,13 +194,17 @@
 			disabled,
 		}
 	}
+	let LitepickerConstructor: typeof Litepicker | undefined = undefined
 	onMount(() => {
 		if (!element) return
 		if (typeof window == 'undefined') return
 		import('litepicker').then(({ Litepicker }) => {
-			instance = new Litepicker(settings)
+			LitepickerConstructor = Litepicker //instance = new Litepicker(settings)
 		})
 	})
+	$: instance = LitepickerConstructor
+		? instance?.destroy() || new LitepickerConstructor(settings)
+		: undefined
 
 	onDestroy(() => {
 		instance?.destroy()
@@ -208,14 +218,7 @@
 				<slot name="start" />
 			</El>
 		{/if}
-		<El
-			tag="input"
-			{components}
-			value={text}
-			bind:element
-			bind:id
-			{cssProps}
-			{...props} />
+		<El tag="input" {components} value={text} bind:element bind:id {cssProps} {...props} />
 		{#if $$slots.end}
 			<El tag="span" componentName="{componentName}-icon">
 				<slot name="end" />
