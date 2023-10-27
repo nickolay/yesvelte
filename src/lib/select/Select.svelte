@@ -69,7 +69,7 @@
 		}
 	}
 
-	const isSelected = (item: any) => {
+	const isSelected = (item: any, value: any) => {
 		if (multiple) {
 			return value?.findIndex((x: any) => getKey(x) === getKey(item)) > -1
 		}
@@ -91,7 +91,7 @@
 			<option disabled selected>{placeholder ? placeholder : ''}</option>
 		{/if}
 		{#each items as item, index}
-			<option value={getKey(item)} selected={isSelected(item)}>
+			<option value={getKey(item)} selected={isSelected(item, value)}>
 				<slot {index} {item}>{item}</slot>
 			</option>
 		{/each}
