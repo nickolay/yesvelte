@@ -6,7 +6,7 @@ import path from 'path'
 import cssNano from 'cssnano'
 import sass from 'sass'
 
-const defaultThemes = ['tabler', 'daisyui']
+const defaultThemes = ['tabler'] //, 'daisyui']
 const destinations = ['./static/css', './src/lib/css']
 
 async function exists(f) {
